@@ -23,15 +23,16 @@ void generate_payloads(uint8_t *buffer, size_t buffer_size)
 	uint32_t lfsr = 0x1f3d5b79;
 	uint32_t i;
 	for (i = 0; i < buffer_size; ++i) {
-		lfsr = advance_lfsr(lfsr);
-		lfsr = advance_lfsr(lfsr);
-		lfsr = advance_lfsr(lfsr);
-		lfsr = advance_lfsr(lfsr);
-		lfsr = advance_lfsr(lfsr);
-		lfsr = advance_lfsr(lfsr);
-		lfsr = advance_lfsr(lfsr);
-		lfsr = advance_lfsr(lfsr);
-		buffer[i] = lfsr & 0xff;
+/*		lfsr = advance_lfsr(lfsr);*/
+/*		lfsr = advance_lfsr(lfsr);*/
+/*		lfsr = advance_lfsr(lfsr);*/
+/*		lfsr = advance_lfsr(lfsr);*/
+/*		lfsr = advance_lfsr(lfsr);*/
+/*		lfsr = advance_lfsr(lfsr);*/
+/*		lfsr = advance_lfsr(lfsr);*/
+/*		lfsr = advance_lfsr(lfsr);*/
+/*		buffer[i] = lfsr & 0xff;*/
+		buffer[i] = i % 0xff;
 	}
 }
 

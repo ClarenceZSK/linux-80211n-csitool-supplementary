@@ -9,6 +9,8 @@
 
 #include <tx80211.h>
 #include <tx80211_packet.h>
+#include "custom_packet.h"
+
 
 #include "util.h"
 
@@ -21,6 +23,7 @@ struct lorcon_packet
 	u_char	addr1[6];
 	u_char	addr2[6];
 	u_char	addr3[6];
+	u_char device_id;//> add by myself 
 	__le16	seq;
 	u_char	payload[0];
 } __attribute__ ((packed));
@@ -79,6 +82,8 @@ int main(int argc, char** argv)
 	if (argc < 2 || (1 != sscanf(argv[1], "%u", &num_packets)))
 		num_packets = 10000;
 		
+		
+
 	
 	/* Generate packet payloads */
 	printf("Generating packet payloads \n");
@@ -102,6 +107,7 @@ int main(int argc, char** argv)
 	packet->fc = (0x08 /* Data frame */
 				| (0x0 << 8) /* Not To-DS */);
 	packet->dur = 0xffff;
+	packet->device_id = 0x56;
 	if (mode == 0) {
 		memcpy(packet->addr1, "\x00\x16\xea\x12\x34\x56", 6);
 		get_mac_address(packet->addr2, "mon0");
@@ -109,6 +115,7 @@ int main(int argc, char** argv)
 	} else if (mode == 1) {
 		memcpy(packet->addr1, "\x00\x16\xea\x12\x34\x56", 6);
 		memcpy(packet->addr2, "\x00\x16\xea\x12\x34\x56", 6);
+		//memcpy(packet->addr2, "\x00\x01\x02\x03\x04\x05", 6);
 		memcpy(packet->addr3, "\xff\xff\xff\xff\xff\xff", 6);
 	}
 	packet->seq = 0;
@@ -123,11 +130,12 @@ int main(int argc, char** argv)
 	}
 	for (i = 0; i < num_packets; ++i) {
 		printf("Sending %u / %u (. every thousand)\n", i, num_packets);		
-		
+		packet->seq = i & 0xffff;
 		payload_memcpy(packet->payload, packet_size,
 				(i*packet_size) % PAYLOAD_SIZE);
 				
-	
+		//memcpy(packet->payload, packet_size, custom_pkg);
+
 		if (delay_us) {
 			clock_gettime(CLOCK_MONOTONIC, &now);
 			diff = (now.tv_sec - start.tv_sec) * 1000000 +
