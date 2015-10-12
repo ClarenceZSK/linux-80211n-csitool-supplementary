@@ -9,6 +9,7 @@
 
 #include <tx80211.h>
 #include <tx80211_packet.h>
+#include <custom_packet.h>
 
 #include "util.h"
 
@@ -30,8 +31,6 @@ struct tx80211_packet	tx_packet;
 uint8_t *payload_buffer;
 #define PAYLOAD_SIZE	2000000
 
-const uint8_t soft_addr[3] = {0x00, 0x00, 0x01};
-
 static inline void payload_memcpy(uint8_t *dest, uint32_t length,
 		uint32_t offset)
 {
@@ -40,8 +39,6 @@ static inline void payload_memcpy(uint8_t *dest, uint32_t length,
 		dest[i] = payload_buffer[(offset + i) % PAYLOAD_SIZE];
 	}
 }
-
-
 
 int main(int argc, char** argv)
 {
@@ -54,10 +51,6 @@ int main(int argc, char** argv)
 	uint32_t delay_us;
 	struct timespec start, now;
 	int32_t diff;
-	
-	
-	
-	
 
 	/* Parse arguments */
 	if (argc > 5) {
@@ -78,8 +71,7 @@ int main(int argc, char** argv)
 		packet_size = 2200;
 	if (argc < 2 || (1 != sscanf(argv[1], "%u", &num_packets)))
 		num_packets = 10000;
-		
-	
+
 	/* Generate packet payloads */
 	printf("Generating packet payloads \n");
 	payload_buffer = malloc(PAYLOAD_SIZE);
@@ -123,11 +115,9 @@ int main(int argc, char** argv)
 	}
 	for (i = 0; i < num_packets; ++i) {
 		printf("Sending %u / %u (. every thousand)\n", i, num_packets);		
-		
 		payload_memcpy(packet->payload, packet_size,
 				(i*packet_size) % PAYLOAD_SIZE);
-				
-	
+
 		if (delay_us) {
 			clock_gettime(CLOCK_MONOTONIC, &now);
 			diff = (now.tv_sec - start.tv_sec) * 1000000 +
