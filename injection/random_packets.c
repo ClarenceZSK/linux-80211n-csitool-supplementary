@@ -32,8 +32,7 @@ struct tx80211	tx;
 struct tx80211_packet	tx_packet;
 uint8_t *payload_buffer;
 #define PAYLOAD_SIZE	2000000
-
-const uint8_t soft_addr[3] = {0x00, 0x00, 0x01};
+#define DEVICE_ID 0x02
 
 static inline void payload_memcpy(uint8_t *dest, uint32_t length,
 		uint32_t offset)
@@ -107,7 +106,6 @@ int main(int argc, char** argv)
 	packet->fc = (0x08 /* Data frame */
 				| (0x0 << 8) /* Not To-DS */);
 	packet->dur = 0xffff;
-	packet->device_id = 0x56;
 	if (mode == 0) {
 		memcpy(packet->addr1, "\x00\x16\xea\x12\x34\x56", 6);
 		get_mac_address(packet->addr2, "mon0");
@@ -118,6 +116,8 @@ int main(int argc, char** argv)
 		//memcpy(packet->addr2, "\x00\x01\x02\x03\x04\x05", 6);
 		memcpy(packet->addr3, "\xff\xff\xff\xff\xff\xff", 6);
 	}
+	
+	packet->device_id = DEVICE_ID;
 	packet->seq = 0;
 	tx_packet.packet = (uint8_t *)packet;
 	tx_packet.plen = sizeof(*packet) + packet_size;
