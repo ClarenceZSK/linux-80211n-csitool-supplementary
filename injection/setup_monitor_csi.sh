@@ -9,5 +9,6 @@ while [ $? -ne 0 ]
 do
 	iwconfig wlan1 mode monitor 2>/dev/null 1>/dev/null
 done
-iw wlan1 set channel $1 $2
+#iw wlan1 set channel $1 $2
 ifconfig wlan1 up
+iwconfig wlan1 channel $1

@@ -72,6 +72,18 @@ a5, 00, 00, 00, 03, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 1a, 00, 00, 00, 
 
 
 
+##the inlier rate for computing phase is always around 2/3, why?
+
+
+#pahse shift about pi pi/2, it is a problem on 2.4G, but it doesn't have this problem on 5G.
+verify the configuration of frequency by
+#iwconfig
+if the frequency is 2.4G, use this command 
+#iwconfig wlan0 channel 64 
+
+
+
+
 
 
 
