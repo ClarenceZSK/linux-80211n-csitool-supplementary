@@ -32,7 +32,7 @@ struct tx80211	tx;
 struct tx80211_packet	tx_packet;
 uint8_t *payload_buffer;
 #define PAYLOAD_SIZE	2000000
-#define DEVICE_ID 0x02
+#define DEVICE_ID 0x01
 
 static inline void payload_memcpy(uint8_t *dest, uint32_t length,
 		uint32_t offset)

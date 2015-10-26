@@ -20,6 +20,11 @@ receiver:
 #note: befere running config, su command should be used 
 sudo su
 
+#3 tx antennas
+echo 0x1c113 | sudo tee `find /sys -name monitor_tx_rate`
+
+#operation not possible due to RF-kilL
+	rfkill unblock wifi 
 
 ##
 roscore 
