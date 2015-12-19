@@ -20,8 +20,20 @@ receiver:
 #note: befere running config, su command should be used 
 sudo su
 
-#3 tx antennas
+#3 tx antennas, 48Mbps, MIMO dual stream
 echo 0x1c113 | sudo tee `find /sys -name monitor_tx_rate`
+
+#antenna B, 12Mbps, SISO
+echo 0x8101 | sudo tee `find /sys -name monitor_tx_rate`
+#antenna C, 12Mbps, SISO 
+echo 0x10101 | sudo tee `find /sys -name monitor_tx_rate`
+
+#antenna B, 48Mbps, SISO
+echo 0x8105 | sudo tee `find /sys -name monitor_tx_rate`
+
+#antenna B, 6.5Mbps, SISO
+echo 0x8100 | sudo tee `find /sys -name monitor_tx_rate`
+
 
 #operation not possible due to RF-kilL
 	rfkill unblock wifi 
