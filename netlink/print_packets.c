@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	uint8_t code;
 	size_t read;
 	struct iwl_bfee_notif *bfee;
-
+	int j = 0;
 	/* Make sure usage is correct */
 	check_usage(argc, argv);
 
@@ -60,6 +60,10 @@ int main(int argc, char** argv)
 		if (code == 0xBB) {
 			bfee = (void *)&buf[1];
 			printf("rate=0x%x\n", bfee->fake_rate_n_flags);
+			for(j = 0; j < bfee->len; j++)
+			{
+				printf("%x ", bfee->payload[j]);
+			}
 		}
 
 		/* Read the next entry size */

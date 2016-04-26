@@ -10,11 +10,17 @@
 #include <tx80211.h>
 #include <tx80211_packet.h>
 
-
+#include <stdio.h>  
+#include <string.h>    
+#include <sys/socket.h>     
+#include <arpa/inet.h> 
+#include <signal.h>
 
 #include "util.h"
 
 static void init_lorcon();
+void caught_signal(int sig);
+void exit_program(int code);
 
 struct lorcon_packet
 {
@@ -34,6 +40,8 @@ uint8_t *payload_buffer;
 #define PAYLOAD_SIZE	2000000
 #define DEVICE_ID 0x01
 
+int sock;
+
 static inline void payload_memcpy(uint8_t *dest, uint32_t length,
 		uint32_t offset)
 {
@@ -45,48 +53,45 @@ static inline void payload_memcpy(uint8_t *dest, uint32_t length,
 
 
 
+
 int main(int argc, char** argv)
 {
-	uint32_t num_packets;
-	uint32_t packet_size;
+	uint32_t num_packets = 10000;
+	uint32_t packet_size = 5;
 	struct lorcon_packet *packet;
 	uint32_t i;
-	int32_t ret;
-	uint32_t mode;
-	uint32_t delay_us;
-	struct timespec start, now;
-	int32_t diff;
-	
-	
-	
-	
+	int32_t ret, inject_ret;
+	uint32_t mode = 1;
 
-	/* Parse arguments */
-	if (argc > 5) {
-		printf("Usage: random_packets <number> <length> <mode: 0=my MAC, 1=injection MAC> <delay in us>\n");
-		return 1;
-	}
-	if (argc < 5 || (1 != sscanf(argv[4], "%u", &delay_us))) {
-		delay_us = 0;
-	}
-	if (argc < 4 || (1 != sscanf(argv[3], "%u", &mode))) {
-		mode = 0;
-		printf("Usage: random_packets <number> <length> <mode: 0=my MAC, 1=injection MAC> <delay in us>\n");
-	} else if (mode > 1) {
-		printf("Usage: random_packets <number> <length> <mode: 0=my MAC, 1=injection MAC> <delay in us>\n");
-		return 1;
-	}
-	if (argc < 3 || (1 != sscanf(argv[2], "%u", &packet_size)))
-		packet_size = 2200;
-	if (argc < 2 || (1 != sscanf(argv[1], "%u", &num_packets)))
-		num_packets = 10000;
-		
-		
 
 	
+    struct sockaddr_in server;
+    char message[1024];
+     
+    //Create socket
+    sock = socket(AF_INET , SOCK_STREAM , 0);
+    if (sock == -1)
+    {
+        printf("Could not create socket");
+    }
+    printf("Socket created\n");
+
+    server.sin_addr.s_addr = inet_addr("192.168.0.1");
+    server.sin_family = AF_INET;
+    server.sin_port = htons( 8888 );
+ 
+    //Connect to remote server
+    if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
+    {
+        perror("connect failed. Error");
+        return 1;
+    }
+     
+    printf("Connected\n");
+
 	/* Generate packet payloads */
 	printf("Generating packet payloads \n");
-	payload_buffer = malloc(PAYLOAD_SIZE);
+	payload_buffer = (uint8_t*)malloc(PAYLOAD_SIZE);
 	if (payload_buffer == NULL) {
 		perror("malloc payload buffer");
 		exit(1);
@@ -98,7 +103,7 @@ int main(int argc, char** argv)
 	init_lorcon();
 
 	/* Allocate packet */
-	packet = malloc(sizeof(*packet) + packet_size);
+	packet = (struct lorcon_packet*)malloc(sizeof(*packet) + packet_size);
 	if (!packet) {
 		perror("malloc packet");
 		exit(1);
@@ -121,29 +126,58 @@ int main(int argc, char** argv)
 	packet->seq = 0;
 	tx_packet.packet = (uint8_t *)packet;
 	tx_packet.plen = sizeof(*packet) + packet_size;
+	payload_memcpy(packet->payload, packet_size, 0);
 
 	/* Send packets */
+	int count = 0;
 	printf("Sending %u packets of size %u (. every thousand)\n", num_packets, packet_size);
-	if (delay_us) {
-		/* Get start time */
-		clock_gettime(CLOCK_MONOTONIC, &start);
+
+	signal(SIGINT, caught_signal);
+
+	while(1)
+	{
+		
+		ret = recv(sock, message , 1024 , 0);
+        if( ret > 0)
+        {
+            printf("recv: %s", message);
+            fflush(stdout);
+
+            packet->seq = count & 0xffff;	
+
+			// inject_ret = tx80211_txpacket(&tx, &tx_packet);
+
+			// if (inject_ret < 0) {
+			// 	fprintf(stderr, "Unable to transmit packet: %s\n",
+			// 			tx.errstr);
+			// 	exit(1);
+			// }
+
+            write(sock , message , strlen(message));
+            usleep(1000);
+            write(sock , message , strlen(message));
+
+            if (count % 100 == 0) 
+			{
+				printf("%d \n", count);
+				fflush(stdout);
+			}
+          	count++;
+
+        }else if(ret < 0)
+        {
+            printf("failed\n");
+            fflush(stdout);
+            break;
+        }
+
 	}
+
+
 	for (i = 0; i < num_packets; ++i) {
 		printf("Sending %u / %u (. every thousand)\n", i, num_packets);		
-		packet->seq = i & 0xffff;
-		payload_memcpy(packet->payload, packet_size,
-				(i*packet_size) % PAYLOAD_SIZE);
-				
+		packet->seq = i & 0xffff;	
 		//memcpy(packet->payload, packet_size, custom_pkg);
-
-		if (delay_us) {
-			clock_gettime(CLOCK_MONOTONIC, &now);
-			diff = (now.tv_sec - start.tv_sec) * 1000000 +
-			       (now.tv_nsec - start.tv_nsec + 500) / 1000;
-			diff = delay_us*i - diff;
-			if (diff > 0 && diff < delay_us)
-				usleep(diff);
-		}
 
 		ret = tx80211_txpacket(&tx, &tx_packet);
 		if (ret < 0) {
@@ -185,3 +219,18 @@ static void init_lorcon()
 	tx80211_initpacket(&tx_packet);
 }
 
+void caught_signal(int sig)
+{
+	fprintf(stderr, "Caught signal %d\n", sig);
+	exit_program(0);
+}
+
+void exit_program(int code)
+{
+	if (sock != -1)
+	{
+		close(sock);
+		sock = -1;
+	}
+	exit(code);
+}

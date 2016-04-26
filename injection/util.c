@@ -32,6 +32,7 @@ void generate_payloads(uint8_t *buffer, size_t buffer_size)
 		lfsr = advance_lfsr(lfsr);
 		lfsr = advance_lfsr(lfsr);
 		buffer[i] = lfsr & 0xff;
+		//buffer[i] = i % 0xff;
 	}
 }
 

@@ -7,13 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-#include <unistd.h>	
+#include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <linux/netlink.h>
 
 #define MAX_PAYLOAD 2048
-#define SLOW_MSG_CNT 1000
+#define SLOW_MSG_CNT 1
 
 int sock_fd = -1;							// the socket
 FILE* out = NULL;
@@ -32,8 +32,6 @@ int main(int argc, char** argv)
 	/* Local variables */
 	struct sockaddr_nl proc_addr, kern_addr;	// addrs for recv, send, bind
 	struct cn_msg *cmsg;
-	struct sockaddr trans_addr;//transimiter address
-	socklen_t trans_addrlen = 0;
 	char buf[4096];
 	int ret;
 	unsigned short l, l2;
@@ -79,17 +77,13 @@ int main(int argc, char** argv)
 	while (1)
 	{
 		/* Receive from socket with infinite timeout */
-		//ret = recv(sock_fd, buf, sizeof(buf), 0);
-		ret = recvfrom(sock_fd, buf, sizeof(buf), 0, &trans_addr, &trans_addrlen);
+		ret = recv(sock_fd, buf, sizeof(buf), 0);
 		if (ret == -1)
 			exit_program_err(-1, "recv");
 		/* Pull out the message portion and print some stats */
 		cmsg = NLMSG_DATA(buf);
 		if (count % SLOW_MSG_CNT == 0)
-		{		
-			//printf("received %d bytes: id: %d val: %d seq: %d clen: %d\n", cmsg->len, cmsg->id.idx, cmsg->id.val, cmsg->seq, cmsg->len);
 			printf("received %d bytes: id: %d val: %d seq: %d clen: %d\n", cmsg->len, cmsg->id.idx, cmsg->id.val, cmsg->seq, cmsg->len);
-		}		
 		/* Log the data to file */
 		l = (unsigned short) cmsg->len;
 		l2 = htons(l);
