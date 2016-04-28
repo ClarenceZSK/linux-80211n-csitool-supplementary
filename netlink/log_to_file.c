@@ -13,7 +13,7 @@
 #include <linux/netlink.h>
 
 #define MAX_PAYLOAD 2048
-#define SLOW_MSG_CNT 1
+#define SLOW_MSG_CNT 1000
 
 int sock_fd = -1;							// the socket
 FILE* out = NULL;
@@ -38,8 +38,7 @@ int main(int argc, char** argv)
 	int ret;
 	unsigned short l, l2;
 	int count = 0;
-	int i = 0;
-	
+
 	/* Make sure usage is correct */
 	check_usage(argc, argv);
 
@@ -82,27 +81,14 @@ int main(int argc, char** argv)
 		/* Receive from socket with infinite timeout */
 		//ret = recv(sock_fd, buf, sizeof(buf), 0);
 		ret = recvfrom(sock_fd, buf, sizeof(buf), 0, &trans_addr, &trans_addrlen);
-		//char *ip = inet_ntoa(trans_addr.sin_addr);		
 		if (ret == -1)
 			exit_program_err(-1, "recv");
 		/* Pull out the message portion and print some stats */
 		cmsg = NLMSG_DATA(buf);
 		if (count % SLOW_MSG_CNT == 0)
 		{		
-			//printf("ip:%s\n", trans_addr.sa_data);	
-			printf("ip: ");	
-			for(i = 0; i < 14; i++)
-			{
-				printf("%x ", trans_addr.sa_data[i]);
-			}				
 			//printf("received %d bytes: id: %d val: %d seq: %d clen: %d\n", cmsg->len, cmsg->id.idx, cmsg->id.val, cmsg->seq, cmsg->len);
 			printf("received %d bytes: id: %d val: %d seq: %d clen: %d\n", cmsg->len, cmsg->id.idx, cmsg->id.val, cmsg->seq, cmsg->len);
-			printf("data: ");
-			for(i = 0; i < cmsg->len; i++)
-			{
-				printf("%x ", cmsg->data[i]);
-			}	
-			printf("\n");
 		}		
 		/* Log the data to file */
 		l = (unsigned short) cmsg->len;
