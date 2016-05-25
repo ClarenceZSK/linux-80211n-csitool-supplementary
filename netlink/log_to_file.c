@@ -13,7 +13,7 @@
 #include <linux/netlink.h>
 
 #define MAX_PAYLOAD 2048
-#define SLOW_MSG_CNT 1000
+#define SLOW_MSG_CNT 100
 
 int sock_fd = -1;							// the socket
 FILE* out = NULL;

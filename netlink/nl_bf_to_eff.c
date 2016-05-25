@@ -44,7 +44,6 @@ int main(int argc, char** argv)
 	signal(SIGINT, caught_signal);
 
 	uint16_t l, l2;
-	int j = 0, count = 0;
 
 	/* Poll socket forever waiting for a message */
 	while (1) {
@@ -58,21 +57,13 @@ int main(int argc, char** argv)
 		/* Log the data to file */
 		l = (uint16_t) len;
 		l2 = htons(l);
-		
-		//fwrite(&l2, 1, sizeof(unsigned short), out);
-		//ret = fwrite(buf, 1, l, out);
-		//printf("wrote %d bytes\n", ret);
-		//if (ret != l)
-		//	exit_program_err(1, "fwrite");
-		
+		fwrite(&l2, 1, sizeof(unsigned short), out);
+		ret = fwrite(buf, 1, l, out);
+		printf("wrote %d bytes\n", ret);
+		if (ret != l)
+			exit_program_err(1, "fwrite");
 		/* Calculate effective SNRs */
 		bfee = (struct iwl5000_bfee_notif *)&buf[1];
-		printf("frame: %d", count++);
-		for(j = 0; j < bfee->len; j++)
-		{
-			printf("%x ", bfee->payload[j]);
-		}
-		printf("\n");
 		calc_eff_snrs(bfee, eff_snrs);
 	}
 }
