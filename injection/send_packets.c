@@ -29,7 +29,7 @@ struct lorcon_packet
 	u_char	addr1[6];
 	u_char	addr2[6];
 	u_char	addr3[6];
-	u_char device_id;//> add by myself 
+	u_char 	device_id;//> add by myself 
 	__le16	seq;
 	u_char	payload[0];
 } __attribute__ ((packed));
@@ -38,7 +38,7 @@ struct tx80211	tx;
 struct tx80211_packet	tx_packet;
 uint8_t *payload_buffer;
 #define PAYLOAD_SIZE	2000000
-#define DEVICE_ID 0x01
+#define DEVICE_ID 		0x02
 
 int sock;
 
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 		ret = recv(sock, message , 1024 , 0);
         if( ret > 0)
         {
-            printf("recv: %s", message);
+            printf("recv: %s\n", message);
             fflush(stdout);
 
             packet->seq = count & 0xffff;	
