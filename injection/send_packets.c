@@ -145,13 +145,13 @@ int main(int argc, char** argv)
 
             packet->seq = count & 0xffff;	
 
-			// inject_ret = tx80211_txpacket(&tx, &tx_packet);
+			inject_ret = tx80211_txpacket(&tx, &tx_packet);
 
-			// if (inject_ret < 0) {
-			// 	fprintf(stderr, "Unable to transmit packet: %s\n",
-			// 			tx.errstr);
-			// 	exit(1);
-			// }
+			if (inject_ret < 0) {
+			 	fprintf(stderr, "Unable to transmit packet: %s\n",
+			 			tx.errstr);
+			 	exit(1);
+			}
 
             write(sock , message , strlen(message));
             usleep(1000);
@@ -171,29 +171,6 @@ int main(int argc, char** argv)
             break;
         }
 
-	}
-
-
-	for (i = 0; i < num_packets; ++i) {
-		printf("Sending %u / %u (. every thousand)\n", i, num_packets);		
-		packet->seq = i & 0xffff;	
-		//memcpy(packet->payload, packet_size, custom_pkg);
-
-		ret = tx80211_txpacket(&tx, &tx_packet);
-		if (ret < 0) {
-			fprintf(stderr, "Unable to transmit packet: %s\n",
-					tx.errstr);
-			exit(1);
-		}
-
-		if (((i+1) % 1000) == 0) {
-			printf(".");
-			fflush(stdout);
-		}
-		if (((i+1) % 50000) == 0) {
-			printf("%dk\n", (i+1)/1000);
-			fflush(stdout);
-		}
 	}
 
 	return 0;
